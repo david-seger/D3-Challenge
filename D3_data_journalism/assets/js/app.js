@@ -10,3 +10,111 @@
 
 // Set SVG Width & Height
 
+let svgWidth = 1000;
+let svgHeight = 500;
+
+// Set Margins
+
+let margin = {
+    top: 50,
+    right: 50,
+    left: 50,
+    bottom: 50
+};
+
+// Chart Area - Margins
+
+let chartWidth = svgWidth - margin.left - margin.right;
+let chartHeight = svgHeight - margin.top - margin.bottom;
+
+// Create SVG Container
+
+var svg = d3.select("#scatter")
+    .append("svg")
+    .attr("width", svgWidth)
+    .attr("height", svgHeight);
+
+// Shift everything over by the margins
+
+let chartGroup = svg.append("g")
+    .attr("transform", `translate(${margin.left}, ${margin.right})`);
+
+// Import Data from the data.csv file
+
+d3.csv("assets/data/data.csv").then(function(healthCareData) {
+    healthCareData.forEach(function(data) {
+        // Make sure data is parsed as numeric
+        data.poverty = +data.poverty;
+        data.healthcare = +data.healthcare;
+    });
+});
+
+// Calculate Linear Scales
+
+let xLinearScale = d3.scaleLinear().range([0,chartWidth]);
+let yLinearScale = d3.scaleLinear().range([chartHeight,0]);
+let chartBottomAxis = d3.axisBottom(xLinearScale);
+let chartLeftAxis = d3.axisLeft(yLinearScale);
+
+// Set Chart Axis to poverty and healthcare
+
+let chartXAxis = 'poverty';
+let chartYAxis = 'healthcare';
+
+// Calculate the Minimum & Maximum values for the x-axis and y-axis
+
+let xMinimum = d3.min(healthCareData, d => d.healthcare);
+let xMaximum = d3.max(healthCareData, d => d.healthcare);
+let yMinimum = d3.min(healthCareData, d => d.poverty);
+let yMaximum = d3.max(healthCareData, d => d.poverty);
+
+// Set the linear scale to be the x & y minimum/maximum
+
+xLinearScale.domain(xMinimum, xMaximum);
+yLinearScale.domain(yMinimum, xMinimum);
+
+// Append Axis to the chart
+chartGroup.append('g')
+    .attr('transform', `translate(0, ${chartHeight}`)
+    .call(chartBottomAxis);
+
+chartGroup.append('g')
+    .call(chartLeftAxis);
+
+// Create Circles and labels for each state
+
+let chartCircleGroup = chartGroup.selectAll('circle')
+    .data(healthCareData)
+    .enter()
+    .append("circle")
+    .attr("cx", d => xLinearScale(d.healthcare * 1.25))
+    .attr("cy", d => yLinearScale(d.poverty * .25))
+    .attr("r", 10)
+    .attr("fill", "blue")
+    .attr("opacity", .25);
+
+chartCircleGroup.append("text")
+    .style("font-size", "10px")
+    .selectAll("tspan")
+    .data.healthCareData
+    .enter()
+    .append("tspan")
+        .attr("x", function(data) {
+            return xLinearScale(data.healthcare * 1.5);
+        })
+        .attr("y", function(data) {
+            return yLinearScale(data.poverty * .25)
+        })
+        .text(function(data) {
+            return data.abbr
+        });
+
+chartGroup.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - chart.margin.left * 50)
+        .attr("x", 0 - (chartHeight / 2))
+        .text("Lacks Healthcare (%)");
+
+chartGroup.append("text")
+        .attr("transform", `translate{${chartWidth/2}, ${chartHeight} + margin.top})`)
+        .text("In Poverty (%)");
