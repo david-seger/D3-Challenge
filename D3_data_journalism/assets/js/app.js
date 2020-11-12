@@ -47,12 +47,14 @@ d3.csv("assets/data/data.csv").then(function(healthCareData) {
         data.poverty = +data.poverty;
         data.healthcare = +data.healthcare;
     });
-});
+
 
 // Calculate Linear Scales
 
-let xLinearScale = d3.scaleLinear().range([0,chartWidth]);
-let yLinearScale = d3.scaleLinear().range([chartHeight,0]);
+let xLinearScale = d3.scaleLinear()
+xLinearScale.range([0,chartWidth]);
+let yLinearScale = d3.scaleLinear()
+yLinearScale.range([chartHeight,0]);
 let chartBottomAxis = d3.axisBottom(xLinearScale);
 let chartLeftAxis = d3.axisLeft(yLinearScale);
 
@@ -67,11 +69,13 @@ let xMinimum = d3.min(healthCareData, d => d.healthcare);
 let xMaximum = d3.max(healthCareData, d => d.healthcare);
 let yMinimum = d3.min(healthCareData, d => d.poverty);
 let yMaximum = d3.max(healthCareData, d => d.poverty);
-
+console.log(healthCareData);
+console.log(xMinimum, xMaximum, yMinimum, yMaximum)
 // Set the linear scale to be the x & y minimum/maximum
 
-xLinearScale.domain(xMinimum, xMaximum);
-yLinearScale.domain(yMinimum, xMinimum);
+xLinearScale.domain([xMinimum, xMaximum]);
+yLinearScale.domain([yMinimum, yMaximum]);
+console.log()
 
 // Append Axis to the chart
 chartGroup.append('g')
@@ -87,8 +91,13 @@ let chartCircleGroup = chartGroup.selectAll('circle')
     .data(healthCareData)
     .enter()
     .append("circle")
-    .attr("cx", d => xLinearScale(d.healthcare * 1.25))
-    .attr("cy", d => yLinearScale(d.poverty * .25))
+    .attr("cx", (d) => {
+        var x = xLinearScale(d.healthcare);
+    console.log(d.healthcare);
+    return x;
+    })
+
+    .attr("cy", d => yLinearScale(d.poverty))
     .attr("r", 10)
     .attr("fill", "blue")
     .attr("opacity", .25);
@@ -96,7 +105,7 @@ let chartCircleGroup = chartGroup.selectAll('circle')
 chartCircleGroup.append("text")
     .style("font-size", "10px")
     .selectAll("tspan")
-    .data.healthCareData
+    .data(healthCareData)
     .enter()
     .append("tspan")
         .attr("x", function(data) {
@@ -111,10 +120,11 @@ chartCircleGroup.append("text")
 
 chartGroup.append("text")
         .attr("transform", "rotate(-90)")
-        .attr("y", 0 - chart.margin.left * 50)
-        .attr("x", 0 - (chartHeight / 2))
+        .attr("x", -120)
+        .attr("y", 0)
         .text("Lacks Healthcare (%)");
 
 chartGroup.append("text")
-        .attr("transform", `translate{${chartWidth/2}, ${chartHeight} + margin.top})`)
+        .attr("transform", `translate{${chartWidth}, ${chartHeight} + margin.top})`)
         .text("In Poverty (%)");
+     });
